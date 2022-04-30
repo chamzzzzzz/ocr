@@ -55,7 +55,7 @@ type MacRecognizer struct {
 
 func (recognizer *MacRecognizer) Recognize(file string) *Result {
 	result := &Result{}
-	cmd := exec.Command("/usr/local/bin/mac-ocr-cli", file)
+	cmd := exec.Command("mac-ocr-cli", file)
 	var out bytes.Buffer
 	cmd.Stdout = &out
 
