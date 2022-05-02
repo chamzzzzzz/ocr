@@ -13,17 +13,16 @@ func main() {
 	}
 
 	recognizer := &ocr.MacRecognizer{}
-	result := recognizer.Recognize(os.Args[1])
-	if result.Error != nil {
-		errMsg := result.Message
-		if errMsg == "" {
-			errMsg = fmt.Sprintf("%s", result.Error)
-		}
-		fmt.Printf("recognize failed: %s\n", errMsg)
-	} else {
-		fmt.Println(result.Image)
-		for i, observation := range result.Observations {
-			fmt.Println(i, observation)
-		}
+	result, err := recognizer.Recognize(os.Args[1])
+	if err != nil {
+		fmt.Println("recognize failed.")
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	fmt.Println("recognize successed.")
+	fmt.Println(result.Image)
+	for i, observation := range result.Observations {
+		fmt.Println(i, observation)
 	}
 }

@@ -2,11 +2,9 @@ package ocr
 
 import (
 	"bytes"
-	"fmt"
 	"os/exec"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type Image struct {
@@ -37,41 +35,29 @@ type Observation struct {
 }
 
 type Result struct {
-	Error        error
-	Code         string
-	Message      string
 	Image        Image
 	Observations []*Observation
-	Cost         time.Duration
-	TotalCost    time.Duration
 }
 
 type Recognizer interface {
-	Recognize(file string) *Result
+	Recognize(file string) (*Result, error)
 }
 
 type MacRecognizer struct {
 }
 
-func (recognizer *MacRecognizer) Recognize(file string) *Result {
-	result := &Result{}
+func (recognizer *MacRecognizer) Recognize(file string) (*Result, error) {
 	cmd := exec.Command("mac-ocr-cli", file)
 	var out bytes.Buffer
 	cmd.Stdout = &out
 
-	start := time.Now()
 	err := cmd.Run()
-	elapsed := time.Now().Sub(start)
-	result.Code = fmt.Sprintf("%d", cmd.ProcessState.ExitCode())
-	result.Cost = elapsed
-	result.TotalCost = elapsed
-	output := strings.TrimSuffix(out.String(), "\n")
 	if err != nil {
-		result.Error = err
-		result.Message = output
-		return result
+		return nil, err
 	}
 
+	result := &Result{}
+	output := strings.TrimSuffix(out.String(), "\n")
 	for i, line := range strings.Split(output, "\n") {
 		if i == 0 {
 			fields := strings.SplitN(line, " ", 2)
@@ -104,5 +90,5 @@ func (recognizer *MacRecognizer) Recognize(file string) *Result {
 			}
 		}
 	}
-	return result
+	return result, nil
 }
