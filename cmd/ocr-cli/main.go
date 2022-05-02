@@ -8,7 +8,7 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Println("usage: ocr file")
+		fmt.Println("usage: ocr-cli file")
 		os.Exit(1)
 	}
 
