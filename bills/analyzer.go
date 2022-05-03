@@ -2,6 +2,7 @@ package bills
 
 import (
 	"github.com/chamzzzzzz/ocr"
+	"strings"
 )
 
 var (
@@ -73,5 +74,53 @@ func (analyzer *UnionPayCreditCardRepaymentAnalyzer) Analyze(result *ocr.Result)
 		Platform:       UnionPay,
 		Classification: CreditCardRepayment,
 	}
+
+	bill.ReceiptAccount, _ = ExtractHorizontalNextItem(result, "还款卡号")
+	bill.PaymentAccount, _ = ExtractHorizontalNextItem(result, "付款卡号")
+	bill.Date, _ = ExtractHorizontalNextItem(result, "创建时间")
+	bill.Amount, _ = ExtractColonJoinedItem(result, "还款金额")
 	return bill, nil
+}
+
+func ExtractHorizontalOffsetItem(result *ocr.Result, itemName string, offset int) (string, bool) {
+	ok := false
+	itemValue := ""
+	for i, observation := range result.Observations {
+		if observation.Text == itemName {
+			j := i + offset
+			if j >= 0 && j < len(result.Observations) {
+				ok = true
+				itemValue = result.Observations[j].Text
+			}
+		}
+	}
+	return itemValue, ok
+}
+
+func ExtractHorizontalNextItem(result *ocr.Result, itemName string) (string, bool) {
+	return ExtractHorizontalOffsetItem(result, itemName, 1)
+}
+
+func ExtractHorizontalPreviousItem(result *ocr.Result, itemName string) (string, bool) {
+	return ExtractHorizontalOffsetItem(result, itemName, -1)
+}
+
+func ExtractSeparatorJoinedItem(result *ocr.Result, itemName string, separator string) (string, bool) {
+	ok := false
+	itemValue := ""
+	for _, observation := range result.Observations {
+		itemNameValue := strings.SplitN(observation.Text, separator, 2)
+		if len(itemNameValue) == 2 {
+			if itemNameValue[0] == itemName {
+				ok = true
+				itemValue = itemNameValue[1]
+				break
+			}
+		}
+	}
+	return itemValue, ok
+}
+
+func ExtractColonJoinedItem(result *ocr.Result, itemName string) (string, bool) {
+	return ExtractSeparatorJoinedItem(result, itemName, "：")
 }
