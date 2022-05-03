@@ -59,6 +59,14 @@ func (analyzer *WechatPayExpenseAnalyze) Analyze(result *ocr.Result) (*Bill, err
 		Platform:       WechatPay,
 		Classification: Expense,
 	}
+	bill.PaymentAccount, _ = ExtractHorizontalNextItem(result, "支付方式")
+	bill.Date, _ = ExtractHorizontalNextItem(result, "支付时间")
+	bill.Merchant, _ = ExtractHorizontalNextItem(result, "商户全称")
+	if HasItem(result, "原价") {
+		bill.Amount, _ = ExtractHorizontalPreviousItem(result, "原价")
+	} else {
+		bill.Amount, _ = ExtractHorizontalPreviousItem(result, "当前状态")
+	}
 	return bill, nil
 }
 
@@ -80,6 +88,15 @@ func (analyzer *UnionPayCreditCardRepaymentAnalyzer) Analyze(result *ocr.Result)
 	bill.Date, _ = ExtractHorizontalNextItem(result, "创建时间")
 	bill.Amount, _ = ExtractColonJoinedItem(result, "还款金额")
 	return bill, nil
+}
+
+func HasItem(result *ocr.Result, itemName string) bool {
+	for _, observation := range result.Observations {
+		if observation.Text == itemName {
+			return true
+		}
+	}
+	return false
 }
 
 func ExtractHorizontalOffsetItem(result *ocr.Result, itemName string, offset int) (string, bool) {
