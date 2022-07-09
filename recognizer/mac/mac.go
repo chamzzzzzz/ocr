@@ -1,52 +1,17 @@
-package ocr
+package mac
 
 import (
 	"bytes"
+	"github.com/chamzzzzzz/ocr/recognizer"
 	"os/exec"
 	"strconv"
 	"strings"
 )
 
-type Image struct {
-	File   string
-	Width  int
-	Height int
+type Recognizer struct {
 }
 
-type Size struct {
-	Width  int
-	Height int
-}
-
-type Point struct {
-	X int
-	Y int
-}
-
-type BoudingBox struct {
-	Origin Point
-	Size   Size
-}
-
-type Observation struct {
-	Confidence int
-	Text       string
-	BoudingBox BoudingBox
-}
-
-type Result struct {
-	Image        Image
-	Observations []*Observation
-}
-
-type Recognizer interface {
-	Recognize(file string) (*Result, error)
-}
-
-type MacRecognizer struct {
-}
-
-func (recognizer *MacRecognizer) Recognize(file string) (*Result, error) {
+func (r *Recognizer) Recognize(file string) (*recognizer.Result, error) {
 	cmd := exec.Command("mac-ocr-cli", file)
 	var out bytes.Buffer
 	cmd.Stdout = &out
@@ -56,7 +21,7 @@ func (recognizer *MacRecognizer) Recognize(file string) (*Result, error) {
 		return nil, err
 	}
 
-	result := &Result{}
+	result := &recognizer.Result{}
 	output := strings.TrimSuffix(out.String(), "\n")
 	for i, line := range strings.Split(output, "\n") {
 		if i == 0 {
@@ -73,7 +38,7 @@ func (recognizer *MacRecognizer) Recognize(file string) (*Result, error) {
 		} else {
 			fields := strings.SplitN(line, " ", 3)
 			if len(fields) == 3 {
-				observation := &Observation{}
+				observation := &recognizer.Observation{}
 				if normalizeConfidence, err := strconv.ParseFloat(fields[0], 64); err == nil {
 					observation.Confidence = int(normalizeConfidence * 100)
 				}

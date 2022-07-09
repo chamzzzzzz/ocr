@@ -12,8 +12,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	recognizer := &ocr.MacRecognizer{}
-	result, err := recognizer.Recognize(os.Args[1])
+	result, err := ocr.Recognize("mac", os.Args[1])
 	if err != nil {
 		fmt.Println("recognize failed.")
 		fmt.Println(err)
